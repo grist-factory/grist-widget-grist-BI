@@ -1,0 +1,29 @@
+{
+  "description": {
+    "fr": "Un tableau de bord dans Grist : des tuiles (graphiques, indicateurs, tableau croisé) sur une même table, qui se filtrent d'un clic, avec drill-down, pages, vues sauvegardées et exports Excel, PDF et PowerPoint. Brouillon à l'essai, pas encore prêt pour un usage réel.",
+    "en": "A dashboard inside Grist: tiles (charts, indicators, pivot table) on one table that filter each other with a click, plus drill-down, pages, saved views and Excel, PDF and PowerPoint exports. A draft to try out, not ready for real use yet."
+  },
+  "captures": [
+    {
+      "fichier": "1.webp",
+      "legende": {
+        "fr": "Indicateurs, jauge, barres et aire, en verre dépoli",
+        "en": "Indicators, gauge, bars and area chart, frosted glass"
+      }
+    },
+    {
+      "fichier": "2.webp",
+      "legende": {
+        "fr": "Un clic filtre toutes les tuiles, le drill-down descend",
+        "en": "One click filters every tile; drill-down goes deeper"
+      }
+    },
+    {
+      "fichier": "3.webp",
+      "legende": {
+        "fr": "Cascade, radar, tableau croisé et cumuls dans le temps",
+        "en": "Waterfall, radar, pivot table and running totals"
+      }
+    }
+  ]
+}
