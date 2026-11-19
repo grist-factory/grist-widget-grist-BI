@@ -2,6 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
+<!-- Politique de sécurité du contenu (audit `gwaudit` C-CSP-01, 18/11/2026) : le filet quand une autre défense cède (js/safe-html.js, js/loader.js).
+     Aucun script en ligne ni `eval` : seul l'`importmap` ci-dessous est autorisé, par son empreinte (à refaire si son texte change : dev-tests/test-csp.js).
+     `https:` en script-src : GFS donne l'adresse de ses bibliothèques (extensions) à l'exécution et nous ne la connaissons pas ; le chargeur y exige une empreinte
+     `integrity`. `connect-src https:` : l'adresse de téléchargement d'une pièce jointe est celle que Grist donne avec le jeton. `style-src 'unsafe-inline'` : les
+     styles posés par script (ECharts, photographie de la page). `frame-ancestors` n'existe pas dans une balise `<meta>` : GFS et Grist cadrent le widget comme avant. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-32b09qgfkzdc6GLAfiouEFY+XmfAMUxoerF0iSh3O/w=' https:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https: blob: data:; object-src 'none'; base-uri 'self'; form-action 'none'" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Grist BI Dashboard (POC)</title>
 <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
@@ -230,12 +236,11 @@
   </div>
 
   <div id="export-popover" class="popover popover-menu" role="menu" data-i18n-aria="export.menu.aria" aria-label="Exporter" hidden>
-    <!-- Exports provisoirement désactivés (18/11/2026, demande d'Antoine : le PDF empile les cartes au lieu de garder le visuel du
-         tableau de bord, le PPTX ne charge pas sa bibliothèque dans un vrai Grist). Boutons grisés, jamais retirés : la mention
-         « bientôt disponible » dit pourquoi. js/main.js:EXPORTS_AVAILABLE les réactive (et ne les laisse jamais se rouvrir à la connexion d'une table). -->
-    <button id="export-excel" type="button" class="menu-item" role="menuitem" data-close-popover disabled aria-disabled="true"><span data-i18n="bookmarks.exportExcel">Exporter en Excel</span> <span class="menu-item-soon" data-i18n="export.soon">bientôt disponible</span></button>
-    <button id="export-pdf" type="button" class="menu-item" role="menuitem" data-close-popover disabled aria-disabled="true"><span data-i18n="bookmarks.exportPdf">Exporter en PDF</span> <span class="menu-item-soon" data-i18n="export.soon">bientôt disponible</span></button>
-    <button id="export-pptx" type="button" class="menu-item" role="menuitem" data-close-popover disabled aria-disabled="true"><span data-i18n="bookmarks.exportPptx">Exporter en PPTX</span> <span class="menu-item-soon" data-i18n="export.soon">bientôt disponible</span></button>
+    <!-- Les trois exports sont ouverts (18/11/2026) : Excel (js/export.js, une feuille par page), PDF et PPTX (js/snapshot.js : la page est photographiée
+         telle qu'elle est dessinée). -->
+    <button id="export-excel" type="button" class="menu-item" role="menuitem" data-close-popover data-i18n="bookmarks.exportExcel">Exporter en Excel</button>
+    <button id="export-pdf" type="button" class="menu-item" role="menuitem" data-close-popover data-i18n="bookmarks.exportPdf">Exporter en PDF</button>
+    <button id="export-pptx" type="button" class="menu-item" role="menuitem" data-close-popover data-i18n="bookmarks.exportPptx">Exporter en PPTX</button>
   </div>
 
   <!-- Panneau Réglages : Langue (radio-boutons fr/en, même placement de référence que Publipostage+
@@ -957,8 +962,11 @@
   </aside>
   </div>
 
+  <script src="js/safe-html.js"></script>
+  <script src="js/loader.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/data-tiles.js"></script>
   <script src="js/extensions.js"></script>
   <script src="js/format.js"></script>
   <script src="js/styles.js"></script>
@@ -970,14 +978,18 @@
   <script src="js/models.js"></script>
   <script src="js/combobox.js"></script>
   <script src="js/state.js"></script>
+  <script src="js/charts-core.js"></script>
+  <script src="js/charts-cards.js"></script>
+  <script src="js/charts-cloud.js"></script>
+  <script src="js/charts-extra.js"></script>
   <script src="js/charts.js"></script>
   <script src="js/export.js"></script>
-  <!-- Export PDF (js/pdf-export.js) : DÉROGATION explicite d'Antoine (2026-09-29, voir CLAUDE.md) à
-       la règle "tout vendorisé" ci-dessus — pdfmake est chargé depuis cdnjs.cloudflare.com à la
-       demande (au premier export, pas ici), même bibliothèque/CDN que le widget frère
-       publipostageGrist. Hash SRI figé dans js/pdf-export.js, échec réseau géré explicitement. -->
+  <!-- Exports PDF et PPTX (refaits le 18/11/2026) : la page est photographiée telle qu'elle est dessinée (js/snapshot.js, sans bibliothèque),
+       le PDF est écrit par js/pdf-writer.js (sans bibliothèque non plus : plus de pdfmake ni de vfs_fonts depuis cdnjs). -->
+  <script src="js/snapshot.js"></script>
+  <script src="js/pdf-writer.js"></script>
   <script src="js/pdf-export.js"></script>
-  <!-- Export PPTX (js/pptx-export.js) : même dérogation qu'au-dessus, pour PptxGenJS. -->
+  <!-- Export PPTX (js/pptx-export.js) : PptxGenJS est chargé à la demande depuis jsDelivr (dérogation d'Antoine du 29/09/2026, version figée + SRI). -->
   <script src="js/pptx-export.js"></script>
   <!-- Mots-clés des publications (consigne GFS 019) : extraction RAKE (pure), lecture du texte d'un PDF
        (PDF.js que GFS donne, jamais ajouté ici) et la logique pure de la fenêtre. Aucune de ces trois
@@ -990,6 +1002,15 @@
   <script src="js/duckdb-engine.js"></script>
   <script src="js/appbar.js"></script>
   <script src="js/dialogs.js"></script>
+  <script src="js/main-core.js"></script>
+  <script src="js/main-fields.js"></script>
+  <script src="js/main-form.js"></script>
+  <script src="js/main-panel.js"></script>
+  <script src="js/main-filters.js"></script>
+  <script src="js/main-dialogs.js"></script>
+  <script src="js/main-render.js"></script>
+  <script src="js/main-session.js"></script>
   <script src="js/main.js"></script>
+  <script type="module" src="js/modules.js"></script>
 </body>
 </html>

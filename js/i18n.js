@@ -74,17 +74,26 @@
     'bookmarks.exportPdf': { fr: 'Exporter en PDF', en: 'Export to PDF' },
     'bookmarks.exportPptx': { fr: 'Exporter en PPTX', en: 'Export to PPTX' },
     'export.none': { fr: 'Aucune tuile à exporter.', en: 'No tile to export.' },
-    'export.soon': { fr: 'bientôt disponible', en: 'coming soon' },
     'export.failed': { fr: "Échec de l'export Excel — voir la console (F12).", en: 'Excel export failed — see the console (F12).' },
-    'export.pdf.chartUnavailable': { fr: 'Graphique indisponible pour cette tuile — réaffichez-la avant d\'exporter.', en: 'Chart unavailable for this tile — display it again before exporting.' },
-    'export.pdf.networkError': {
-      fr: "Échec de l'export PDF — pdfmake est chargé depuis cdnjs.cloudflare.com (pas vendorisé dans ce dépôt, voir CLAUDE.md) : vérifiez votre connexion. Détail dans la console (F12).",
-      en: 'PDF export failed — pdfmake is loaded from cdnjs.cloudflare.com (not vendored in this repo, see CLAUDE.md): check your connection. Details in the console (F12).',
-    },
-    'export.pptx.chartUnavailable': { fr: 'Graphique indisponible pour cette tuile — réaffichez-la avant d\'exporter.', en: 'Chart unavailable for this tile — display it again before exporting.' },
+    // Classeur Excel (js/export.js) : par page, une feuille « tableau de bord » (une image par tuile, à sa place) et une feuille de données (un tableau Excel par tuile).
+    'export.xlsx.subtitle': { fr: 'Exporté le {date} · {rows} {rows|ligne|lignes} de données', en: 'Exported on {date} · {rows} data {rows|row|rows}' },
+    'export.xlsx.filters': { fr: '{n} {n|filtre actif appliqué|filtres actifs appliqués} aux chiffres', en: '{n} active {n|filter|filters} applied to the figures' },
+    'export.xlsx.noImage': { fr: 'Visuel indisponible pour cette tuile : ses données sont dans la feuille de données.', en: 'Visual unavailable for this tile: its data is in the data sheet.' },
+    'export.xlsx.noRows': { fr: 'Aucune donnée pour cette tuile avec les filtres actuels.', en: 'No data for this tile with the current filters.' },
+    'export.xlsx.truncated': { fr: '… {n} {n|ligne de plus n’est pas exportée|lignes de plus ne sont pas exportées}', en: '… {n} more {n|row is|rows are} not exported' },
+    'export.xlsx.cut': { fr: 'Feuille pleine : les tableaux suivants ne sont pas exportés.', en: 'Sheet full: the following tables are not exported.' },
+    'export.xlsx.dataSuffix': { fr: 'données', en: 'data' },
+    'export.xlsx.dataSheet': { fr: 'Données', en: 'Data' },
+    'export.xlsx.toData': { fr: 'Données de cette page ›', en: 'Data for this page ›' },
+    'export.xlsx.toDashboard': { fr: '‹ Tableau de bord', en: '‹ Dashboard' },
+    'export.xlsx.preparing': { fr: 'Préparation du classeur Excel…', en: 'Preparing the Excel workbook…' },
+    // PDF et PPTX (js/pdf-export.js, js/pptx-export.js) : la page est photographiée telle qu'elle est dessinée (js/snapshot.js).
+    'export.pdf.failed': { fr: "Échec de l'export PDF — voir la console (F12).", en: 'PDF export failed — see the console (F12).' },
+    'export.header.filters': { fr: 'Filtres actifs', en: 'Active filters' },
+    'export.pptx.failed': { fr: "Échec de l'export PPTX — voir la console (F12).", en: 'PPTX export failed — see the console (F12).' },
     'export.pptx.networkError': {
-      fr: "Échec de l'export PPTX — PptxGenJS est chargé depuis cdnjs.cloudflare.com (pas vendorisé dans ce dépôt, voir CLAUDE.md) : vérifiez votre connexion. Détail dans la console (F12).",
-      en: 'PPTX export failed — PptxGenJS is loaded from cdnjs.cloudflare.com (not vendored in this repo, see CLAUDE.md): check your connection. Details in the console (F12).',
+      fr: "Échec de l'export PPTX — PptxGenJS est chargé à la demande depuis cdn.jsdelivr.net (pas vendorisé dans ce dépôt, voir CLAUDE.md) : vérifiez votre connexion, ou qu'un pare-feu ne bloque pas ce site. Détail dans la console (F12).",
+      en: 'PPTX export failed — PptxGenJS is loaded on demand from cdn.jsdelivr.net (not vendored in this repo, see CLAUDE.md): check your connection, or whether a firewall blocks that site. Details in the console (F12).',
     },
 
     // --- Panneau Réglages (logo/Crédits/licence GPL v3, PR #7 ; langue, remplace le bouton de
@@ -955,7 +964,7 @@
     return out;
   }
 
-  function t(key, vars) {
+  function translate(key, vars) {
     const entry = STRINGS[key];
     if (!entry) { console.warn('[GristBI.i18n] clé inconnue :', key); return key; }
     if (!entry[lang]) console.warn('[GristBI.i18n] traduction "' + lang + '" manquante pour "' + key + '" (repli FR).');
@@ -973,7 +982,7 @@
   // main) le texte stocké (`title`) tel quel. Jamais utilisé pour nommer une feuille d'export
   // (js/data.js reste pur, sans dépendance à ce module) : ces exports gardent `tile.title`.
   function tileTitle(tile) {
-    if (tile && tile.titleKey && STRINGS[tile.titleKey]) return t(tile.titleKey, tile.titleVars);
+    if (tile && tile.titleKey && STRINGS[tile.titleKey]) return translate(tile.titleKey, tile.titleVars);
     return (tile && tile.title) || '';
   }
 
@@ -1006,11 +1015,11 @@
   function applyTranslations(root) {
     if (typeof document === 'undefined') return; // Node (tests) : pas de DOM à mettre à jour.
     const scope = root || document;
-    scope.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.getAttribute('data-i18n')); });
-    scope.querySelectorAll('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
-    scope.querySelectorAll('[data-i18n-title]').forEach((el) => { el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
-    scope.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
-    scope.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
+    scope.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = translate(el.getAttribute('data-i18n')); });
+    scope.querySelectorAll('[data-i18n-html]').forEach((el) => { GristBI.safeHtml.setHtml(el, translate(el.getAttribute('data-i18n-html'))); });
+    scope.querySelectorAll('[data-i18n-title]').forEach((el) => { el.setAttribute('title', translate(el.getAttribute('data-i18n-title'))); });
+    scope.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', translate(el.getAttribute('data-i18n-aria'))); });
+    scope.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.setAttribute('placeholder', translate(el.getAttribute('data-i18n-placeholder'))); });
   }
 
   // Applique tout de suite (pas seulement lors d'un futur setLang) : ce script est placé après tout
@@ -1019,5 +1028,5 @@
   if (typeof document !== 'undefined') document.documentElement.lang = lang;
   applyTranslations();
 
-  return { t, tileTitle, getLang, setLang, applyTranslations, onChange, STRINGS };
+  return { t: translate, tileTitle, getLang, setLang, applyTranslations, onChange, STRINGS };
 });

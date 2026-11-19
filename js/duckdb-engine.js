@@ -78,7 +78,9 @@
   async function init() {
     if (_initPromise) return _initPromise;
     _initPromise = (async () => {
-      const duckdb = await import(VENDOR_BASE_URL + 'duckdb-browser.mjs');
+      // Le module se demande par son nom au chargeur unique (js/loader.js, table littérale de js/modules.js) ; le worker
+      // et le binaire .wasm restent des adresses du dossier vendorisé (VENDOR_BASE_URL), que DuckDB charge lui-même.
+      const duckdb = await root.GristBI.loader.module('duckdb');
       const worker = await duckdb.createWorker(VENDOR_BASE_URL + 'duckdb-browser-eh.worker.js');
       const db = new duckdb.AsyncDuckDB(new duckdb.VoidLogger(), worker);
       await db.instantiate(VENDOR_BASE_URL + 'duckdb-eh.wasm');
@@ -123,9 +125,9 @@
   function arrowTableToObjects(table) {
     const fields = table.schema.fields.map((f) => f.name);
     return table.toArray().map((row) => {
-      const obj = {};
-      for (const field of fields) obj[field] = row[field];
-      return obj;
+      const record = {};
+      for (const field of fields) record[field] = row[field];
+      return record;
     });
   }
 
